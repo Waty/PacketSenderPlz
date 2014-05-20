@@ -71,10 +71,9 @@ Void MainForm::bCancel_Click(Object^ sender, EventArgs^ e)
 Void MainForm::SendAllPackets()
 {
 	size_t size = packets.size();
-	for (size_t nIndex = 0; nIndex < size; nIndex++)
+	for (auto p : packets)
 	{
 		if (bwSender->CancellationPending) return;
-		auto p = packets[nIndex];
 		if (!p->Send())
 		{
 			Log("Failed sending '" + p->ToString() + "':\n" + p->GetError());
