@@ -302,7 +302,7 @@ namespace PacketSenderPlz {
 			this->Controls->Add(this->pSendRecvButtons);
 			this->MinimumSize = System::Drawing::Size(457, 179);
 			this->Name = L"MainForm";
-			this->Text = L"Waty\'s PacketSenderPlz v2.1";
+			this->Text = L"Waty\'s PacketSenderPlz v2.2";
 			this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MainForm::MainForm_FormClosing);
 			this->pSendRecvButtons->ResumeLayout(false);
 			this->pSendRecvButtons->PerformLayout();
