@@ -10,13 +10,14 @@ using namespace System::Threading::Tasks;
 HMODULE hModule = NULL;
 std::vector<MsPacket*> packets;
 
-void InitializeClr(HINSTANCE hInstance)
+DWORD WINAPI InitializeClr(LPVOID lpInstance)
 {
-	hModule = hInstance;
+	hModule = reinterpret_cast<HINSTANCE>(lpInstance);
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
 	Application::Run(gcnew MainForm());
 	Application::Exit();
+	return 0;
 };
 
 void Log(std::string message)

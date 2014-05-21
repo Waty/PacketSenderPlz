@@ -1,8 +1,6 @@
 #pragma once
 #include "MapleStructs.h"
 
-extern void Log(std::string);
-
 class MsPacket
 {
 	std::string m_error;
