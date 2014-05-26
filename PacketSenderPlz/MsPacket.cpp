@@ -16,6 +16,8 @@ SendPacket_t SendPacket = reinterpret_cast<SendPacket_t>(SendPacketAddy);
 typedef void(__thiscall *ProcessPacket_t)(void* lpvEcx, CInPacket& iPacket);
 ProcessPacket_t ProcessPacket = reinterpret_cast<ProcessPacket_t>(ProcessPacketAddy);
 
+extern void Log(std::string message);
+
 MsPacket::MsPacket() : m_bShouldBeParsed(true)
 {
 	if (dwMainThreadID == NULL) GetMapleThreadId();
