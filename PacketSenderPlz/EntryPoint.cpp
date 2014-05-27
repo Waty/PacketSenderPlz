@@ -91,7 +91,7 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	hInstance = reinterpret_cast<HINSTANCE>(lpInstance);
 
 	form fm;
-	fm.caption(L"Waty's PacketSenderPlz");
+	fm.caption(L"Waty's PacketSenderPlz v2.3");
 	fm.make_event<events::unload>(PacketSenderCloses);
 
 	progress pb(fm);
