@@ -1,4 +1,5 @@
 #include <thread>
+#include <atomic>
 #include <iostream>
 #include <Windows.h>
 #include "MsPacket.h"
@@ -14,6 +15,8 @@ using namespace nana::threads;
 
 int nSendCount = 0, nLineDelay = 0, nLoopDelay = 0;
 HINSTANCE hInstance = NULL;
+place* plc;
+std::atomic<bool> bShouldCancel;
 
 void Log(std::string message)
 {
@@ -43,40 +46,6 @@ void parseTextboxToInt(const textbox& sender, const eventinfo& info, int& value)
 		catch (const std::invalid_argument&) {}
 	}
 	value = number;
-}
-
-void SendAllPackets(const textbox& tb)
-{
-	auto SendAllLines = [&]
-	{
-		static nana::string str;
-		static MsPacket p;
-
-		for (int line = 0; tb.getline(line, str); line++)
-		{
-			if (p.Parse(static_cast<std::string>(nana::charset(str)))) {
-				p.Send();
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(nLineDelay));
-		}
-	};
-
-	if (nSendCount > 0)
-	{
-		for (int nSentCount = 0; nSentCount < nSendCount; nSentCount++)
-		{
-			SendAllLines();
-			std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
-		}
-	}
-	else
-	{
-		while (nSendCount == 0)//TODO: Implement a button to break free from this loop!
-		{
-			SendAllLines();
-			std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
-		}
-	}
 }
 
 //Checks if the packet is valid, if it is valid, it saves the packet(s) to a file and enables the send button
@@ -125,32 +94,98 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	fm.caption(L"Waty's PacketSenderPlz");
 	fm.make_event<events::unload>(PacketSenderCloses);
 
+	progress pb(fm);
+	pool thrpool;
+	button bSend(fm, L"Send"), bCancel(fm, L"Cancel");
+	bCancel.make_event<events::click>([&]{ bShouldCancel = true; });
+
 	textbox tbPackets(fm), tbSendCount(fm), tbLineDelay(fm), tbLoopDelay(fm);
 	//This gives them a tip_string, disables multiline and adds automatical parsing of the numbers entered in them
 	tbSendCount.tip_string(L"SendCount").multi_lines(false).make_event<events::key_up>(std::bind(parseTextboxToInt, std::ref(tbSendCount), std::placeholders::_1, std::ref(nSendCount)));
 	tbLineDelay.tip_string(L"LineDelay").multi_lines(false).make_event<events::key_up>(std::bind(parseTextboxToInt, std::ref(tbLineDelay), std::placeholders::_1, std::ref(nLineDelay)));
 	tbLoopDelay.tip_string(L"LoopDelay").multi_lines(false).make_event<events::key_up>(std::bind(parseTextboxToInt, std::ref(tbLoopDelay), std::placeholders::_1, std::ref(nLoopDelay)));
 
-	pool thrpool;
-	button bSend(fm, L"Send");
-	bSend.make_event<events::click>([&]	{ thrpool.push(std::bind(SendAllPackets, std::cref(tbPackets))); });
+	auto ShowProgress = [&](bool show)
+	{
+		show ? tbSendCount.hide() : tbSendCount.show();
+		show ? tbLineDelay.hide() : tbLineDelay.show();
+		show ? tbLoopDelay.hide() : tbLoopDelay.show();
+		show ? bSend.hide() : bSend.show();
+
+		show ? pb.show() : pb.hide();
+		show ? bCancel.show() : bCancel.hide();
+
+		delete plc;
+		plc = new place(fm);
+		plc->div("<vertical margin=7 <textbox> <weight=7> <weight=25 controls > >");
+		plc->field("textbox") << tbPackets;
+		if (show) plc->field("controls") << plc->percent(pb, 75) << 7 << bCancel;
+		else plc->field("controls") << tbSendCount << 7 << tbLineDelay << 7 << tbLoopDelay << 7 << bSend;
+		plc->collocate();
+	};
 
 	//Init the textbox
 	tbPackets.load(L"C:\\Test");
 	tbPackets.tip_string(L"Type your scripts/packets here!");
 	tbPackets.make_event<events::key_up>(std::bind(tbPacket_KeyUp, std::ref(tbPackets), std::ref(bSend)));
 
+	bSend.make_event<events::click>([&]
+	{
+		bShouldCancel = false;
+		thrpool.push([&]
+		{
+			ShowProgress(true);
+			auto SendAllLines = [&]
+			{
+				static nana::string str;
+				static MsPacket p;
+
+				for (int line = 0; tbPackets.getline(line, str); line++)
+				{
+					if (bShouldCancel) break;
+					if (!p.Parse(static_cast<std::string>(nana::charset(str))) || !p.Send())
+					{
+						bShouldCancel = true;
+						Log(p.GetError());
+					}
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(nLineDelay));
+				}
+			};
+
+			if (nSendCount > 0)
+			{
+				for (int nTimesSent = 0; nTimesSent < nSendCount; nTimesSent++)
+				{
+					if (bShouldCancel) break;
+					pb.unknown(false);
+					pb.value(nTimesSent);
+					pb.amount(nSendCount);
+					SendAllLines();
+					std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
+				}
+			}
+			else
+			{
+				while (nSendCount == 0 && !bShouldCancel)
+				{
+					pb.unknown(true);
+					pb.inc();
+					SendAllLines();
+					std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
+				}
+			}
+			ShowProgress(false);
+		});
+	});
+
 	//Fix the layout of everything
-	place plc(fm);
-	plc.div("<vertical margin=7 <textbox> <weight=7> <weight=25 controls > >");
-	plc.field("textbox") << tbPackets;
-	plc.field("controls") << tbSendCount << 7 << tbLineDelay << 7 << tbLoopDelay << 7 << bSend;
-	plc.collocate();
+	ShowProgress(false);
 
 	fm.show();
 	exec();
-
-	auto result = FreeConsole();
+	
+	FreeConsole();
 
 	return EXIT_SUCCESS;
 }
