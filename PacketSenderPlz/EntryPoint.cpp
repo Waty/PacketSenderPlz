@@ -99,17 +99,19 @@ void tbPacket_KeyUp(textbox& tbPackets, button& bSend)
 
 void PacketSenderCloses(const eventinfo& info)
 {
-	switch (MessageBox(0, L"Do you want to close MapleStory too?", L"Close MS?", MB_ICONQUESTION | MB_YESNOCANCEL))
+	msgbox box(info.window, L"Close MS?", msgbox::button_t::yes_no_cancel);
+	box.icon(msgbox::icon_t::icon_question) << L"Do you want to close MapleStory too?";
+	switch (box.show())
 	{
-	case IDYES:
+	case msgbox::pick_yes:
 		TerminateProcess(GetCurrentProcess(), EXIT_SUCCESS);
 		break;
 
-	case IDNO:
+	case msgbox::pick_no:
 		FreeLibraryAndExitThread(hInstance, EXIT_SUCCESS);
 		break;
 
-	case IDCANCEL:
+	case msgbox::pick_cancel:
 		info.unload.cancel = true;
 		break;
 	}
