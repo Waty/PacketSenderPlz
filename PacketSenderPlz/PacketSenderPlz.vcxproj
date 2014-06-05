@@ -89,6 +89,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EntryPoint.cpp" />
+    <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MsPacket.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +100,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MainForm.h" />
     <ClInclude Include="MapleStructs.h" />
     <ClInclude Include="MsPacket.h" />
   </ItemGroup>
