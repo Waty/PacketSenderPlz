@@ -186,6 +186,7 @@ bool MsPacket::Send()
 	return true;
 
 #else
+
 	//The packet needs to have atleast the header if we want to send it
 	if (!IsConnected())
 	{
@@ -196,13 +197,21 @@ bool MsPacket::Send()
 	if (m_bShouldBeParsed && !Parse(m_source)) return false;
 
 	//Spoofs threadId
-	__writefsdword(0x6B8, dwMainThreadID);
+	//__writefsdword(0x6B8, dwMainThreadID);
 
 	COutPacket p;
 	p.m_lpvSendBuff = &m_data[0];
 	p.m_uDataLen = m_data.size();
 
-	try { SendPacket(p); return true; }
+	try {
+		Log("Going to send " + ToString());
+		(*reinterpret_cast<CClientSocket**>(CClientSocketPtr))->SendPacket(p);
+		Log("Finished Sending :-)");
+		
+		//SendPacket(p);
+		return true; 
+	
+	}
 	catch (...) { return false; }
 #endif
 }

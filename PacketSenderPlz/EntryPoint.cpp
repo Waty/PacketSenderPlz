@@ -18,7 +18,7 @@ extern HINSTANCE hInstance;
 
 void Log(const std::string& message)
 {
-#ifdef _DEBUG
+#ifndef _DEBUG
 	HWND handle = GetConsoleWindow();
 	if (handle == NULL)
 	{

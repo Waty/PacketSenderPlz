@@ -4,10 +4,10 @@
 #include <nana\gui\wvl.hpp>
 #include <nana\gui\timer.hpp>
 #include <nana\gui\place.hpp>
-#include <nana\threads\pool.hpp>
 #include <nana\gui\widgets\button.hpp>
 #include <nana\gui\widgets\textbox.hpp>
 #include <nana\gui\widgets\progress.hpp>
+#include <nana\threads\pool.hpp>
 
 using namespace nana::gui;
 using namespace nana::threads;
