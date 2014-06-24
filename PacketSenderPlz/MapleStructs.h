@@ -14,14 +14,12 @@ struct ZSocketBase
 
 template <class T> struct ZList
 {
-	//vfptr;					//0x00
+	virtual ~ZList<T>();		//0x00
 	void* baseclass_4;			//0x04
 	unsigned int _m_uCount;		//0x08
 	T* _m_pHead;				//0x0C
-	T* _m_pTail;				//0x10
-
-	virtual ~ZList<T>();
-};
+	T* _m_pTail;				//0x10	
+};								//0x14 
 
 template <class T> struct ZRef
 {
