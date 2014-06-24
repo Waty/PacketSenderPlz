@@ -6,15 +6,6 @@
 #include <sstream>
 #include <TlHelp32.h>
 
-const uint32_t SendPacketAddy = 0x478780;
-const uint32_t CClientSocketPtr = 0x16C6F98;
-const uint32_t ProcessPacketAddy = 0x57ED20;
-
-typedef void(__cdecl *SendPacket_t)(COutPacket& oPacket);
-SendPacket_t SendPacket = reinterpret_cast<SendPacket_t>(SendPacketAddy);
-
-typedef void(__thiscall *ProcessPacket_t)(void* lpvEcx, CInPacket& iPacket);
-ProcessPacket_t ProcessPacket = reinterpret_cast<ProcessPacket_t>(ProcessPacketAddy);
 
 extern void Log(const std::string& message);
 
