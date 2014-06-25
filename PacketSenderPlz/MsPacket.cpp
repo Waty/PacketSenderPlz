@@ -51,48 +51,6 @@ void MsPacket::EncodeString(std::string data)
 	for (size_t i = 0; i < data.size(); i++) m_data.push_back(data[i]);
 }
 
-void MsPacket::GetMapleThreadId()
-{
-#define MAKEULONGLONG(ldw, hdw) ((ULONGLONG(hdw) << 32) | ((ldw) & 0xFFFFFFFF))
-
-	DWORD dwProcID = GetCurrentProcessId();
-	ULONGLONG ullMinCreateTime = MAXULONGLONG;
-
-	HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (hThreadSnap != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 th32;
-		th32.dwSize = sizeof(THREADENTRY32);
-		BOOL bOK = TRUE;
-		for (bOK = Thread32First(hThreadSnap, &th32); bOK; bOK = Thread32Next(hThreadSnap, &th32))
-		{
-			if (th32.th32OwnerProcessID == dwProcID)
-			{
-				HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, TRUE, th32.th32ThreadID);
-				if (hThread)
-				{
-					FILETIME afTimes[4] = { 0 };
-					if (GetThreadTimes(hThread, &afTimes[0], &afTimes[1], &afTimes[2], &afTimes[3]))
-					{
-						ULONGLONG ullTest = MAKEULONGLONG(afTimes[0].dwLowDateTime, afTimes[0].dwHighDateTime);
-						if (ullTest && ullTest < ullMinCreateTime)
-						{
-							ullMinCreateTime = ullTest;
-							dwMainThreadID = th32.th32ThreadID; // let it be main... :)
-						}
-					}
-					CloseHandle(hThread);
-				}
-			}
-		}
-#ifndef UNDER_CE
-		CloseHandle(hThreadSnap);
-#else
-		CloseToolhelp32Snapshot(hThreadSnap);
-#endif
-	}
-}
-
 bool MsPacket::IsConnected()
 {
 	try { return *reinterpret_cast<void**>(CClientSocketPtr) != nullptr; }
@@ -187,22 +145,11 @@ bool MsPacket::Send()
 	}
 	if (m_bShouldBeParsed && !Parse(m_source)) return false;
 
-	//Spoofs threadId
-	//__writefsdword(0x6B8, dwMainThreadID);
-
 	COutPacket p;
 	p.m_lpvSendBuff = &m_data[0];
 	p.m_uDataLen = m_data.size();
 
-	try {
-		Log("Going to send " + ToString());
-		(*reinterpret_cast<CClientSocket**>(CClientSocketPtr))->SendPacket(p);
-		Log("Finished Sending :-)");
-		
-		//SendPacket(p);
-		return true; 
-	
-	}
+	try { (*reinterpret_cast<CClientSocket**>(CClientSocketPtr))->SendPacket(p); return true; }
 	catch (...) { return false; }
 #endif
 }

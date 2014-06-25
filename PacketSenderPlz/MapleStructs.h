@@ -7,27 +7,41 @@
 extern void Log(const std::string& msg);
 #pragma comment (lib, "Ws2_32.lib")
 
-#define GMS
+namespace GMSAddys
+{
+	const uint32_t MSLockAddy = 0x409440;			// 53 56 8B 74 24 0C 8B D9 8B CE
+	const uint32_t MSUnlockAddy = 0x4015A0;			// 8B 01 83 40 04 FF 75 06
+	const uint32_t innoHashAddy = 0x14866B0;		// 51 8B 44 24 10 C7 04 24
+	const uint32_t FlushSocketAddy = 0x5C4D20;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
+	const uint32_t MakeBufferListAddy = 0xA76030;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
+
+	const uint32_t CClientSocketPtr = 0x1A733F8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
+
+	const uint32_t GameVersion = 149;
+}
+
+namespace EMSAddys
+{
+	const uint32_t MSLockAddy = 0x408C70;			// 53 56 8B 74 24 0C 8B D9 8B CE
+	const uint32_t MSUnlockAddy = 0x401350;			// 8B 01 83 40 04 FF 75 06
+	const uint32_t innoHashAddy = 0x10BA5C0;		// 51 8B 44 24 10 C7 04 24
+	const uint32_t FlushSocketAddy = 0x57DC10;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
+	const uint32_t MakeBufferListAddy = 0x8E9EC0;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
+
+	const uint32_t CClientSocketPtr = 0x16CF0A8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
+
+	const uint32_t GameVersion = 103;
+}
+
 #ifdef GMS
-const uint32_t MSLockAddy = 0x409440;			// 53 56 8B 74 24 0C 8B D9 8B CE
-const uint32_t MSUnlockAddy = 0x4015A0;			// 8B 01 83 40 04 FF 75 06
-const uint32_t innoHashAddy = 0x14866B0;		// 51 8B 44 24 10 C7 04 24
-const uint32_t FlushSocketAddy = 0x5C4D20;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
-const uint32_t MakeBufferListAddy = 0xA76030;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
+using namespace GMSAddys;
+#endif // GMS
 
-const uint32_t CClientSocketPtr = 0x1A733F8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
+#ifdef EMS
+using namespace EMSAddys;
+#endif // EMS
 
-const uint32_t GameVersion = 149;
 
-#elif EMS
-
-typedef void(__thiscall *ProcessPacket_t)(void* lpvEcx, CInPacket& iPacket);
-ProcessPacket_t ProcessPacket = reinterpret_cast<ProcessPacket_t>(ProcessPacketAddy);
-
-const uint32_t SendPacketAddy = 0x478780;
-typedef void(__cdecl *SendPacket_t)(COutPacket& oPacket);
-SendPacket_t SendPacket = reinterpret_cast<SendPacket_t>(SendPacketAddy);
-#endif
 
 struct ZSocketBase
 {
@@ -101,18 +115,14 @@ struct ZFatalSection : public ZFatalSectionData
 template<class T> struct ZSynchronizedHelper
 {
 public:
-	ZSynchronizedHelper(T* lock)
+	__inline ZSynchronizedHelper(T* lock)
 	{
-		typedef void(__thiscall * Constructor_t)(ZSynchronizedHelper<T>* _this, T* lock);
-		Constructor_t Constructor = reinterpret_cast<Constructor_t>(MSLockAddy);
-		Constructor(this, lock);
+		reinterpret_cast<void(__thiscall*)(ZSynchronizedHelper<T>*, T*)>(MSLockAddy)(this, lock);
 	}
 
-	~ZSynchronizedHelper()
+	__inline ~ZSynchronizedHelper()
 	{
-		typedef void(__thiscall *Destructor_t)(ZSynchronizedHelper<T>* _this);
-		Destructor_t Destructor = reinterpret_cast<Destructor_t>(MSUnlockAddy);
-		Destructor(this);
+		reinterpret_cast<void(__thiscall*)(ZSynchronizedHelper<T>*)>(MSUnlockAddy)(this);
 	}
 
 private:
@@ -164,6 +174,10 @@ struct CClientSocket
 		}
 	}
 };
+#ifdef GMS
+static_assert(sizeof(CClientSocket) == 0x98, "CClientSocket is the wrong size!");
+#endif // GMS
 
-static_assert(sizeof(CClientSocket) == 0x98, "CCLientSocket is the wrong size!");
-//typedef void(__thiscall *CClientSocket__SendPacket_t)(CClientSocket* _this, COutPacket* oPacket);
+#ifdef EMS
+static_assert(sizeof(CClientSocket) == 0x9C, "CClientSocket is the wrong size!");
+#endif // EMS

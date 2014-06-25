@@ -1,4 +1,7 @@
 #pragma once
+
+// This decides what addys it uses
+#define EMS
 #include "MapleStructs.h"
 
 class MsPacket

@@ -1,14 +1,5 @@
-#include <thread>
-#include <atomic>
-#include <iostream>
 #include <Windows.h>
-#include "MsPacket.h"
-#include <nana\gui\wvl.hpp>
-#include <nana\gui\place.hpp>
-#include <nana\threads\pool.hpp>
-#include <nana\gui\widgets\button.hpp>
-#include <nana\gui\widgets\textbox.hpp>
-#include <nana\gui\widgets\progress.hpp>
+#include <iostream>
 #include "MainForm.h"
 
 using namespace nana::gui;
