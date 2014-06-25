@@ -17,6 +17,8 @@ const uint32_t MakeBufferListAddy = 0xA76030;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 
 
 const uint32_t CClientSocketPtr = 0x1A733F8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
 
+const uint32_t GameVersion = 149;
+
 #elif EMS
 
 typedef void(__thiscall *ProcessPacket_t)(void* lpvEcx, CInPacket& iPacket);
@@ -117,8 +119,7 @@ private:
 	T* m_pLock;
 };
 
-typedef unsigned int(__cdecl *CIGCipher__innoHash_t)(char *pSrc, int nLen, unsigned int *pdwKey);
-static CIGCipher__innoHash_t CIGCipher__innoHash = reinterpret_cast<CIGCipher__innoHash_t>(innoHashAddy);
+static auto CIGCipher__innoHash = reinterpret_cast<unsigned int(__cdecl *)(char *pSrc, int nLen, unsigned int *pdwKey)>(innoHashAddy);
 struct CClientSocket
 {
 	struct CONNECTCONTEXT
@@ -148,8 +149,7 @@ struct CClientSocket
 
 	void Flush()
 	{
-		auto Flush = reinterpret_cast<void(__thiscall*)(CClientSocket*)>(FlushSocketAddy);
-		Flush(this);
+		reinterpret_cast<void(__thiscall*)(CClientSocket*)>(FlushSocketAddy)(this);
 	}
 
 	void SendPacket(COutPacket& oPacket)
@@ -158,7 +158,7 @@ struct CClientSocket
 
 		if (m_sock._m_hSocket != 0 && m_sock._m_hSocket != 0xFFFFFFFF && m_ctxConnect.lAddr._m_uCount == 0)
 		{
-			oPacket.MakeBufferList(&m_lpSendBuff, 149, &m_uSeqSnd, 1, m_uSeqSnd);
+			oPacket.MakeBufferList(&m_lpSendBuff, GameVersion, &m_uSeqSnd, 1, m_uSeqSnd);
 			m_uSeqSnd = CIGCipher__innoHash(reinterpret_cast<char*>(&m_uSeqSnd), 4, 0);
 			Flush();
 		}
