@@ -22,8 +22,6 @@ public:
 	void Encode8(uint64_t data);
 	void EncodeString(std::string data);
 
-	void GetMapleThreadId();
-
 	bool Parse(std::string& source);
 	bool Recv();
 	bool Send();

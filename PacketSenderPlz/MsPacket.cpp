@@ -11,7 +11,6 @@ extern void Log(const std::string& message);
 
 MsPacket::MsPacket() : m_bShouldBeParsed(true)
 {
-	if (dwMainThreadID == NULL) GetMapleThreadId();
 }
 
 void MsPacket::Encode1(uint8_t data)
