@@ -1,14 +1,4 @@
-#include <Windows.h>
-#include <iostream>
-#include <thread>
-#include <atomic>
-#include <nana\gui.hpp>
-#include <nana\threads\pool.hpp>
-#include <nana\gui\widgets\textbox.hpp>
-#include <nana\gui\widgets\progress.hpp>
-#include <nana\gui\place.hpp>
-#include <nana\gui\widgets\button.hpp>
-
+#include "stdafx.h"
 #include "MsPacket.h"
 
 using namespace nana::threads;

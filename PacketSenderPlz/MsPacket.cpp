@@ -1,11 +1,5 @@
+#include "stdafx.h"
 #include "MsPacket.h"
-
-#include <Windows.h>
-#include <algorithm>
-#include <iomanip>
-#include <sstream>
-#include <TlHelp32.h>
-
 
 extern void Log(const std::string& message);
 
