@@ -104,7 +104,7 @@ void SendPackets(const std::vector<string> &lines, progress & progressbar)
 
 void WhitelistNumbers(const nana::arg_keyboard& info)
 {
-	info.ignore = (info.key >= 'a' && info.key <= 'z') || (info.key >= 'A' && info.key <= 'Z') || info.key == VK_TAB;
+	info.ignore = (info.key >= 'a' && info.key <= 'z') || (info.key >= 'A' && info.key <= 'Z');
 }
 
 DWORD WINAPI Start(LPVOID lpInstance)
