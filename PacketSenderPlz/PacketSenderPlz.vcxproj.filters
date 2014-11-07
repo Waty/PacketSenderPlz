@@ -21,18 +21,12 @@
     <ClCompile Include="MsPacket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MainForm.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MapleStructs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MsPacket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MainForm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
