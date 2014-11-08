@@ -63,9 +63,11 @@ void SendAllLines(const std::vector<string>& lines)
 	}
 }
 
-void SendPackets(const std::vector<string> &lines, progress & progressbar)
+void SendPackets(const std::vector<string>& lines, progress& progressbar)
 {
+#ifdef _DEBUG
 	Log("Sending " + std::to_string(lines.size()) + " packets " + std::to_string(nSendCount) + " times");
+#endif
 
 	bIsCancelled = false;
 	if (nSendCount > 0)
@@ -92,11 +94,6 @@ void SendPackets(const std::vector<string> &lines, progress & progressbar)
 	}
 }
 
-void WhitelistNumbers(const nana::arg_keyboard& info)
-{
-	info.ignore = (info.key >= 'a' && info.key <= 'z') || (info.key >= 'A' && info.key <= 'Z');
-}
-
 DWORD WINAPI Start(LPVOID lpInstance)
 {
 	nana::form fm;
@@ -110,21 +107,23 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	button bSend(fm, L"Send"), bCancel(fm, L"Cancel");
 	pool thrpool(1);
 
+	tbPackets.set_accept([](nana::char_t c) { return iswxdigit(c) || iswcntrl(c) || c == '*' || c == ' '; });
 	API::eat_tabstop(tbPackets, false);
 
+	auto filter = [](nana::char_t c) { return iswdigit(c) || iswcntrl(c); };
 	tbSendCount.tip_string(L"SendCount").multi_lines(false);
 	tbSendCount.tooltip(L"Specifies how many times this packet will be sent.");
-	tbSendCount.events().key_char(WhitelistNumbers);
+	tbSendCount.set_accept(filter);
 	API::eat_tabstop(tbSendCount, false);
 
 	tbLineDelay.tip_string(L"LineDelay").multi_lines(false);
 	tbLineDelay.tooltip(L"Specifies the delay in milliseconds that the sender will wait before sending the next line");
-	tbLineDelay.events().key_char(WhitelistNumbers);
+	tbLineDelay.set_accept(filter);
 	API::eat_tabstop(tbLineDelay, false);
 
 	tbLoopDelay.tip_string(L"LoopDelay").multi_lines(false);
 	tbLoopDelay.tooltip(L"The delay in milliseconds that the sender will wait before restarting the loop");
-	tbLoopDelay.events().key_char(WhitelistNumbers);
+	tbLoopDelay.set_accept(filter);
 	API::eat_tabstop(tbLoopDelay, false);
 
 	auto showProgress = [&]
