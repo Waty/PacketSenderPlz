@@ -1,25 +1,10 @@
+#include "stdafx.h"
 #include "MsPacket.h"
-
-#include <Windows.h>
-#include <algorithm>
-#include <iomanip>
-#include <sstream>
-#include <TlHelp32.h>
-
-const uint32_t SendPacketAddy = 0x4784F0;
-const uint32_t CClientSocketPtr = 0x16CF0A8;
-
-typedef void(__cdecl *SendPacket_t)(COutPacket& oPacket);
-SendPacket_t SendPacket = reinterpret_cast<SendPacket_t>(SendPacketAddy);
-
-typedef void(__thiscall *ProcessPacket_t)(void* lpvEcx, CInPacket& iPacket);
-//ProcessPacket_t ProcessPacket = reinterpret_cast<ProcessPacket_t>(ProcessPacketAddy);
 
 extern void Log(const std::string& message);
 
 MsPacket::MsPacket() : m_bShouldBeParsed(true)
 {
-	if (dwMainThreadID == NULL) GetMapleThreadId();
 }
 
 void MsPacket::Encode1(uint8_t data)
@@ -57,48 +42,6 @@ void MsPacket::EncodeString(std::string data)
 {
 	Encode2(data.size());
 	for (size_t i = 0; i < data.size(); i++) m_data.push_back(data[i]);
-}
-
-void MsPacket::GetMapleThreadId()
-{
-#define MAKEULONGLONG(ldw, hdw) ((ULONGLONG(hdw) << 32) | ((ldw) & 0xFFFFFFFF))
-
-	DWORD dwProcID = GetCurrentProcessId();
-	ULONGLONG ullMinCreateTime = MAXULONGLONG;
-
-	HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (hThreadSnap != INVALID_HANDLE_VALUE)
-	{
-		THREADENTRY32 th32;
-		th32.dwSize = sizeof(THREADENTRY32);
-		BOOL bOK = TRUE;
-		for (bOK = Thread32First(hThreadSnap, &th32); bOK; bOK = Thread32Next(hThreadSnap, &th32))
-		{
-			if (th32.th32OwnerProcessID == dwProcID)
-			{
-				HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, TRUE, th32.th32ThreadID);
-				if (hThread)
-				{
-					FILETIME afTimes[4] = { 0 };
-					if (GetThreadTimes(hThread, &afTimes[0], &afTimes[1], &afTimes[2], &afTimes[3]))
-					{
-						ULONGLONG ullTest = MAKEULONGLONG(afTimes[0].dwLowDateTime, afTimes[0].dwHighDateTime);
-						if (ullTest && ullTest < ullMinCreateTime)
-						{
-							ullMinCreateTime = ullTest;
-							dwMainThreadID = th32.th32ThreadID; // let it be main... :)
-						}
-					}
-					CloseHandle(hThread);
-				}
-			}
-		}
-#ifndef UNDER_CE
-		CloseHandle(hThreadSnap);
-#else
-		CloseToolhelp32Snapshot(hThreadSnap);
-#endif
-	}
 }
 
 bool MsPacket::IsConnected()
@@ -185,6 +128,7 @@ bool MsPacket::Send()
 	return true;
 
 #else
+
 	//The packet needs to have atleast the header if we want to send it
 	if (!IsConnected())
 	{
@@ -194,14 +138,11 @@ bool MsPacket::Send()
 	}
 	if (m_bShouldBeParsed && !Parse(m_source)) return false;
 
-	//Spoofs threadId
-	__writefsdword(0x6B8, dwMainThreadID);
-
 	COutPacket p;
 	p.m_lpvSendBuff = &m_data[0];
 	p.m_uDataLen = m_data.size();
 
-	try { SendPacket(p); return true; }
+	try { (*reinterpret_cast<CClientSocket**>(CClientSocketPtr))->SendPacket(p); return true; }
 	catch (...) { return false; }
 #endif
 }
