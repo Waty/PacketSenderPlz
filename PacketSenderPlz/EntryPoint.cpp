@@ -126,23 +126,16 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	tbLoopDelay.set_accept(filter);
 	API::eat_tabstop(tbLoopDelay, false);
 
-	auto showProgress = [&]
+	auto showProgress = [&](bool show)
 	{
-		plc.field_display("controls", false);
-		plc.field_display("progress", true);
-		plc.collocate();
-	};
-
-	auto hideProgress = [&]
-	{
-		plc.field_display("controls", true);
-		plc.field_display("progress", false);
+		plc.field_display("controls", !show);
+		plc.field_display("progress", show);
 		plc.collocate();
 	};
 
 	bSend.events().click([&] {
 		thrpool.push([&]{
-			showProgress();
+			showProgress(true);
 
 			nSendCount = tbSendCount.to_int();
 			nLineDelay = tbLineDelay.to_int();
@@ -153,7 +146,7 @@ DWORD WINAPI Start(LPVOID lpInstance)
 			for (size_t i = 0; tbPackets.getline(i, str); i++) lines.push_back(str);
 			SendPackets(lines, progressbar);
 
-			hideProgress();
+			showProgress(false);
 		});
 	});
 	bCancel.events().click([] { bIsCancelled = true; });
@@ -163,7 +156,7 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	plc.field("packets") << tbPackets;
 	plc.field("progress") << progressbar << bCancel;
 	plc.field("controls") << tbSendCount << tbLineDelay << tbLoopDelay << bSend;
-	hideProgress();
+	showProgress(false);
 
 	fm.show();
 	exec();
