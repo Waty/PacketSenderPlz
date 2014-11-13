@@ -128,25 +128,15 @@ DWORD WINAPI Start(LPVOID lpInstance)
 
 	auto showProgress = [&]
 	{
-		plc.erase(tbSendCount);
-		plc.erase(tbLineDelay);
-		plc.erase(tbLoopDelay);
-		plc.erase(bSend);
-		bSend.hide();
-		tbSendCount.hide();
-		tbLineDelay.hide();
-		tbLoopDelay.hide();
-		plc.field("controls") << progressbar << bCancel;
+		plc.field_display("controls", false);
+		plc.field_display("progress", true);
 		plc.collocate();
 	};
 
 	auto hideProgress = [&]
 	{
-		plc.erase(progressbar);
-		plc.erase(bCancel);
-		progressbar.hide();
-		bCancel.hide();
-		plc.field("controls") << tbSendCount << tbLineDelay << tbLoopDelay << bSend;
+		plc.field_display("controls", true);
+		plc.field_display("progress", false);
 		plc.collocate();
 	};
 
@@ -169,8 +159,10 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	bCancel.events().click([] { bIsCancelled = true; });
 
 	//place the widgets in the correct fields
-	plc.div("<vertical margin=7 <packets> <weight=7> <weight=25 <controls gap=7> > >");
+	plc.div("<vertical margin=7 <packets> <weight=7> <weight=25 <controls gap=7> <progress gap=7> > >");
 	plc.field("packets") << tbPackets;
+	plc.field("progress") << progressbar << bCancel;
+	plc.field("controls") << tbSendCount << tbLineDelay << tbLoopDelay << bSend;
 	hideProgress();
 
 	fm.show();
