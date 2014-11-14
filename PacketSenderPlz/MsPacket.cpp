@@ -38,7 +38,7 @@ template <typename T>
 void MsPacket::Encode(T data)
 {
 	auto ptr = reinterpret_cast<unsigned char*>(&data);
-	std::copy(ptr, ptr + sizeof(T), std::back_inserter(m_data));
+	m_data.insert(m_data.end(), ptr, ptr + sizeof(T));
 }
 
 bool MsPacket::IsConnected()
@@ -148,7 +148,7 @@ std::string MsPacket::ToString()
 {
 	std::stringstream ss;
 	ss << std::uppercase << std::hex;
-	for (uint8_t b : m_data) ss << std::setw(2) << std::setfill('0') << int(b) << " ";
+	for (uint8_t b : m_data) ss << std::setw(2) << std::setfill('0') << (int)b << ' ';
 	std::string result = ss.str();
 	result.pop_back();
 	return result;
