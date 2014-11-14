@@ -1,11 +1,7 @@
 #pragma once
-#define GMS
-#include <vector>
-#include <WinSock.h>
-#include <string>
+#define EMS
 
 extern void Log(const std::string& msg);
-#pragma comment (lib, "Ws2_32.lib")
 namespace GMSAddys
 {
 	const unsigned int MSLockAddy = 0x409440;			// 53 56 8B 74 24 0C 8B D9 8B CE
@@ -21,15 +17,15 @@ namespace GMSAddys
 
 namespace EMSAddys
 {
-	const unsigned int MSLockAddy = 0x408C70;			// 53 56 8B 74 24 0C 8B D9 8B CE
-	const unsigned int MSUnlockAddy = 0x401350;			// 8B 01 83 40 04 FF 75 06
-	const unsigned int innoHashAddy = 0x10BA5C0;		// 51 8B 44 24 10 C7 04 24
-	const unsigned int FlushSocketAddy = 0x57DC10;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
-	const unsigned int MakeBufferListAddy = 0x8E9EC0;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
+	const unsigned int MSLockAddy = 0x408A90;			// 53 56 8B 74 24 0C 8B D9 8B CE
+	const unsigned int MSUnlockAddy = 0x4013D0;			// 8B 01 83 40 04 FF 75 06
+	const unsigned int innoHashAddy = 0x11A9A40;		// 51 8B 44 24 10 C7 04 24
+	const unsigned int FlushSocketAddy = 0x586DA0;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
+	const unsigned int MakeBufferListAddy = 0x936DC0;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
 
-	const unsigned int CClientSocketPtr = 0x16CF0A8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
+	const unsigned int CClientSocketPtr = 0x168BF80;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
 
-	const unsigned int GameVersion = 103;
+	const unsigned int GameVersion = 106;
 }
 
 #ifdef GMS
