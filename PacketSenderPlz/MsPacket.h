@@ -1,6 +1,4 @@
 #pragma once
-#include "MapleStructs.h"
-#include <stdint.h>
 
 class MsPacket
 {
@@ -10,13 +8,16 @@ class MsPacket
 	bool m_bShouldBeParsed;
 	static unsigned int dwMainThreadID;
 
+	template <typename T>
+	void Encode(T data);
+
 public:
 	MsPacket();
 	bool IsConnected();
 
-	void Encode1(unsigned char data);
+	void Encode1(uint8_t data);
 	void Encode2(uint16_t data);
-	void Encode4(unsigned int data);
+	void Encode4(uint32_t data);
 	void Encode8(uint64_t data);
 	void EncodeString(std::string data);
 

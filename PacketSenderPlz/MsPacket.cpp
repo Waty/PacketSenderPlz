@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MsPacket.h"
+#include "MapleStructs.h"
 
 extern void Log(const std::string& message);
 
@@ -9,39 +10,35 @@ MsPacket::MsPacket() : m_bShouldBeParsed(true)
 
 void MsPacket::Encode1(uint8_t data)
 {
-	m_data.push_back(data);
+	return Encode<uint8_t>(data);
 }
 
 void MsPacket::Encode2(uint16_t data)
 {
-	m_data.push_back(data & 0xFF);
-	m_data.push_back((data >> 8) & 0xFF);
+	return Encode<uint16_t>(data);
 }
 
 void MsPacket::Encode4(uint32_t data)
 {
-	m_data.push_back(data & 0xFF);
-	m_data.push_back((data >> 8) & 0xFF);
-	m_data.push_back((data >> 16) & 0xFF);
-	m_data.push_back((data >> 24) & 0xFF);
+	return Encode<uint32_t>(data);
 }
 
 void MsPacket::Encode8(uint64_t data)
 {
-	m_data.push_back(data & 0xFF);
-	m_data.push_back((data >> 8) & 0xFF);
-	m_data.push_back((data >> 16) & 0xFF);
-	m_data.push_back((data >> 24) & 0xFF);
-	m_data.push_back((data >> 32) & 0xFF);
-	m_data.push_back((data >> 40) & 0xFF);
-	m_data.push_back((data >> 48) & 0xFF);
-	m_data.push_back((data >> 56) & 0xFF);
+	return Encode<uint64_t>(data);
 }
 
 void MsPacket::EncodeString(std::string data)
 {
 	Encode2(data.size());
-	for (size_t i = 0; i < data.size(); i++) m_data.push_back(data[i]);
+	m_data.insert(m_data.end(), data.begin(), data.end());
+}
+
+template <typename T>
+void MsPacket::Encode(T data)
+{
+	auto ptr = reinterpret_cast<unsigned char*>(&data);
+	std::copy(ptr, ptr + sizeof(T), std::back_inserter(m_data));
 }
 
 bool MsPacket::IsConnected()
@@ -151,7 +148,7 @@ std::string MsPacket::ToString()
 {
 	std::stringstream ss;
 	ss << std::uppercase << std::hex;
-	for (BYTE b : m_data) ss << std::setw(2) << std::setfill('0') << int(b) << " ";
+	for (uint8_t b : m_data) ss << std::setw(2) << std::setfill('0') << int(b) << " ";
 	std::string result = ss.str();
 	result.pop_back();
 	return result;

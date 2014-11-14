@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <iomanip>
 #include <sstream>
-#include <TlHelp32.h>
+#include <WinSock.h>
 
 #include <nana\gui.hpp>
 #include <nana\gui\place.hpp>
