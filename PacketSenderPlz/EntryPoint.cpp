@@ -1,18 +1,18 @@
 #include "stdafx.h"
-#include "MsPacket.h"
+#include "packet.h"
 
-using namespace nana::threads;
 using namespace nana;
+using namespace threads;
 
-HINSTANCE hInstance;
-int nSendCount = 0, nLineDelay = 0, nLoopDelay = 0;
-std::atomic<bool> bIsCancelled;
+HINSTANCE instance_handle;
+int send_count = 0, line_delay = 0, loop_delay = 0;
+std::atomic<bool> cancelled;
 
-void Log(const std::string& message)
+void log(const std::string& message)
 {
 #ifdef _DEBUG
 	HWND handle = GetConsoleWindow();
-	if (handle == NULL)
+	if (handle == nullptr)
 	{
 		AllocConsole();
 		FILE* stream;
@@ -22,11 +22,11 @@ void Log(const std::string& message)
 	else ShowWindow(handle, SW_SHOW);
 	std::cout << message << '\n';
 #else
-	MessageBoxA(0, message.c_str(), 0, 0);
+	MessageBoxA(nullptr, message.c_str(), nullptr, 0);
 #endif
 }
 
-void OnUnload(const arg_unload& info)
+void on_unload(const arg_unload& info)
 {
 	msgbox box(info.window_handle, L"Close MS?", msgbox::button_t::yes_no_cancel);
 	box.icon(msgbox::icon_t::icon_question) << L"Do you want to close MapleStory too?";
@@ -37,68 +37,69 @@ void OnUnload(const arg_unload& info)
 		break;
 
 	case msgbox::pick_no:
-		FreeLibraryAndExitThread(hInstance, EXIT_SUCCESS);
+		FreeLibraryAndExitThread(instance_handle, EXIT_SUCCESS);
 		break;
 
+	default:
 	case msgbox::pick_cancel:
 		info.cancel = true;
 		break;
 	}
 }
 
-void SendAllLines(const std::vector<string>& lines)
+void send_all_lines(const std::vector<string>& lines)
 {
-	MsPacket p;
+	packet p;
 
-	for (string str : lines)
+	for (auto str : lines)
 	{
-		if (bIsCancelled) break;
-		if (!p.Parse(static_cast<std::string>(nana::charset(str))) || !p.Send())
+		if (cancelled) break;
+		if (!p.parse(static_cast<std::string>(charset(str))) || !p.send())
 		{
-			bIsCancelled = true;
-			Log(p.GetError());
+			cancelled = true;
+			log(p.get_error());
 		}
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(nLineDelay));
+		std::this_thread::sleep_for(std::chrono::milliseconds(line_delay));
 	}
 }
 
-void SendPackets(const std::vector<string>& lines, progress& progressbar)
+void send_packets(const std::vector<string>& lines, progress& progressbar)
 {
 #ifdef _DEBUG
-	Log("Sending " + std::to_string(lines.size()) + " packets " + std::to_string(nSendCount) + " times");
+	log("Sending " + std::to_string(lines.size()) + " packets " + std::to_string(send_count) + " times");
 #endif
 
-	bIsCancelled = false;
-	if (nSendCount > 0)
+	cancelled = false;
+	if (send_count > 0)
 	{
 		progressbar.unknown(false);
-		progressbar.amount(nSendCount);
-		for (int nTimesSent = 0; nTimesSent < nSendCount; nTimesSent++)
+		progressbar.amount(send_count);
+		for (int times_sent = 0; times_sent < send_count; times_sent++)
 		{
-			if (bIsCancelled) break;
-			progressbar.value(nTimesSent);
-			SendAllLines(lines);
-			std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
+			if (cancelled) break;
+			progressbar.value(times_sent);
+			send_all_lines(lines);
+			std::this_thread::sleep_for(std::chrono::milliseconds(loop_delay));
 		}
 	}
 	else
 	{
 		progressbar.unknown(true);
-		while (!bIsCancelled)
+		while (!cancelled)
 		{
 			progressbar.inc();
-			SendAllLines(lines);
-			std::this_thread::sleep_for(std::chrono::milliseconds(nLoopDelay));
+			send_all_lines(lines);
+			std::this_thread::sleep_for(std::chrono::milliseconds(loop_delay));
 		}
 	}
 }
 
-DWORD WINAPI Start(LPVOID lpInstance)
+DWORD WINAPI start(LPVOID /*lpInstance*/)
 {
-	nana::form fm;
+	form fm;
 	fm.caption(L"Waty's PacketSenderPlz v2.4");
-	fm.events().unload(OnUnload);
+	fm.events().unload(on_unload);
 
 	//Initialize all controls:
 	place plc(fm);
@@ -107,10 +108,10 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	button bSend(fm, L"Send"), bCancel(fm, L"Cancel");
 	pool thrpool(1);
 
-	tbPackets.set_accept([](nana::char_t c) { return iswxdigit(c) || iswcntrl(c) || c == '*' || c == ' '; });
+	tbPackets.set_accept([](char_t c) { return iswxdigit(c) || iswcntrl(c) || c == '*' || c == ' '; });
 	API::eat_tabstop(tbPackets, false);
 
-	auto filter = [](nana::char_t c) { return iswdigit(c) || iswcntrl(c); };
+	auto filter = [](char_t c) { return iswdigit(c) || iswcntrl(c); };
 	tbSendCount.tip_string(L"SendCount").multi_lines(false);
 	tbSendCount.tooltip(L"Specifies how many times this packet will be sent.");
 	tbSendCount.set_accept(filter);
@@ -126,7 +127,7 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	tbLoopDelay.set_accept(filter);
 	API::eat_tabstop(tbLoopDelay, false);
 
-	auto showProgress = [&](bool show)
+	auto show_progress = [&](bool show)
 	{
 		plc.field_display("controls", !show);
 		plc.field_display("progress", show);
@@ -135,28 +136,28 @@ DWORD WINAPI Start(LPVOID lpInstance)
 
 	bSend.events().click([&] {
 		thrpool.push([&]{
-			showProgress(true);
+			show_progress(true);
 
-			nSendCount = tbSendCount.to_int();
-			nLineDelay = tbLineDelay.to_int();
-			nLoopDelay = tbLoopDelay.to_int();
+			send_count = tbSendCount.to_int();
+			line_delay = tbLineDelay.to_int();
+			loop_delay = tbLoopDelay.to_int();
 
 			std::vector<string> lines;
 			string str;
 			for (size_t i = 0; tbPackets.getline(i, str); i++) lines.push_back(str);
-			SendPackets(lines, progressbar);
+			send_packets(lines, progressbar);
 
-			showProgress(false);
+			show_progress(false);
 		});
 	});
-	bCancel.events().click([] { bIsCancelled = true; });
+	bCancel.events().click([] { cancelled = true; });
 
 	//place the widgets in the correct fields
 	plc.div("<vertical margin=7 <packets> <weight=7> <weight=25 <controls gap=7> <progress gap=7> > >");
 	plc.field("packets") << tbPackets;
 	plc.field("progress") << progressbar << bCancel;
 	plc.field("controls") << tbSendCount << tbLineDelay << tbLoopDelay << bSend;
-	showProgress(false);
+	show_progress(false);
 
 	fm.show();
 	exec();
@@ -164,15 +165,15 @@ DWORD WINAPI Start(LPVOID lpInstance)
 	return EXIT_SUCCESS;
 }
 
-int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPSTR /*lpCmdLine*/, int /*nCmdShow*/)
 {
-	Start(hInstance);
+	start(hInstance);
 }
 
-BOOL WINAPI DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpvReserved)
+BOOL WINAPI DllMain(HMODULE module, DWORD fdwReason, LPVOID /*lpvReserved*/)
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)
-		CreateThread(NULL, NULL, Start, hModule, NULL, NULL);
+		CreateThread(nullptr, NULL, start, module, NULL, nullptr);
 
 	return TRUE;
 }
