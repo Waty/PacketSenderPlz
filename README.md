@@ -1,6 +1,15 @@
 # PacketSenderPlz
 A simple bypassless packetsender for Europe MapleStory
 
+## Updating
+* Open **MapleStructs.h**
+* The second line of the file is **#define EMS**, change it to GMS if that's what you're compiling for
+* Update the addys in the correct namespace to the new version using the AOBs provided, and change the **GameVersion** to the version you're compiling for.
+
+PacketSenderPlz should now be updated to the version you want to use it in.
+
+(There are plans to make it update automatically, but for now you'll have to do it manually :wink:)
+
 ## Compiling
 * Dowload all the required code:
  * Get a fresh copy of the repo, you can do thi using git clone, or the download link GitHub offers
