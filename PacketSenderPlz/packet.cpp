@@ -4,26 +4,26 @@
 
 extern void log(const std::string& message);
 
-packet::packet() : should_be_parsed_(true) {}
+packet::packet() : should_be_parsed_(false) {}
 
 void packet::encode1(uint8_t data)
 {
-	return encode<uint8_t>(data);
+	return encode(data);
 }
 
 void packet::encode2(uint16_t data)
 {
-	return encode<uint16_t>(data);
+	return encode(data);
 }
 
 void packet::encode4(uint32_t data)
 {
-	return encode<uint32_t>(data);
+	return encode(data);
 }
 
 void packet::encode8(uint64_t data)
 {
-	return encode<uint64_t>(data);
+	return encode(data);
 }
 
 void packet::encode_string(std::string data)
@@ -35,7 +35,7 @@ void packet::encode_string(std::string data)
 template <typename T>
 void packet::encode(T data)
 {
-	auto ptr = reinterpret_cast<unsigned char*>(&data);
+	auto ptr = reinterpret_cast<uint8_t*>(&data);
 	data_.insert(data_.end(), ptr, ptr + sizeof(T));
 }
 
@@ -121,8 +121,9 @@ bool packet::receive()
 
 bool packet::send()
 {
-#ifdef _DEBUG
 	if (should_be_parsed_ && !parse(source_)) return false;
+
+#ifdef _DEBUG
 
 	log("Sent " + to_string());
 	return true;
@@ -135,7 +136,6 @@ bool packet::send()
 			"You are probably hitting the Send button at the play screen, or MS just crashed...";
 		return false;
 	}
-	if (should_be_parsed_ && !parse(source_)) return false;
 
 	COutPacket p;
 	p.m_lpvSendBuff = &data_[0];
