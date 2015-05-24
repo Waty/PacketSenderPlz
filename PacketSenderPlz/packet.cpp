@@ -6,6 +6,11 @@ extern void log(const std::string& message);
 
 packet::packet() : should_be_parsed_(false) {}
 
+packet::packet(uint16_t header) : packet()
+{
+	encode2(header);
+}
+
 void packet::encode1(uint8_t data)
 {
 	return encode(data);

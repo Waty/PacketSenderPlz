@@ -14,6 +14,7 @@ class packet
 
 public:
 	packet();
+	packet(uint16_t header);
 	bool is_connected();
 
 	void encode1(uint8_t data);
