@@ -22,6 +22,7 @@ public:
 	void encode4(uint32_t data);
 	void encode8(uint64_t data);
 	void encode_string(std::string data);
+	void encode_data(std::initializer_list<uint8_t> data);
 
 	bool parse(std::string& source);
 	bool receive();

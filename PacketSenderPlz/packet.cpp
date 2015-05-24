@@ -37,6 +37,11 @@ void packet::encode_string(std::string data)
 	data_.insert(data_.end(), data.begin(), data.end());
 }
 
+void packet::encode_data(std::initializer_list<uint8_t> data)
+{
+	data_.insert(data_.end(), data.begin(), data.end());
+}
+
 template <typename T>
 void packet::encode(T data)
 {
