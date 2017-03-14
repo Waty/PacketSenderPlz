@@ -28,8 +28,8 @@ void log(const std::string& message)
 
 void on_unload(const arg_unload& info)
 {
-	msgbox box(info.window_handle, L"Close MS?", msgbox::button_t::yes_no_cancel);
-	box.icon(msgbox::icon_t::icon_question) << L"Do you want to close MapleStory too?";
+	msgbox box(info.window_handle, "Close MS?", msgbox::button_t::yes_no_cancel);
+	box.icon(msgbox::icon_t::icon_question) << "Do you want to close MapleStory too?";
 	switch (box.show())
 	{
 	case msgbox::pick_yes:
@@ -38,7 +38,6 @@ void on_unload(const arg_unload& info)
 
 	case msgbox::pick_no:
 		FreeLibraryAndExitThread(instance_handle, EXIT_SUCCESS);
-		break;
 
 	default:
 	case msgbox::pick_cancel:
@@ -47,14 +46,14 @@ void on_unload(const arg_unload& info)
 	}
 }
 
-void send_all_lines(const std::vector<string>& lines)
+void send_all_lines(const std::vector<std::string>& lines)
 {
 	packet p;
 
 	for (auto str : lines)
 	{
 		if (cancelled) break;
-		if (!p.parse(static_cast<std::string>(charset(str))) || !p.send())
+		if (!p.parse(str) || !p.send())
 		{
 			cancelled = true;
 			log(p.get_error());
@@ -64,7 +63,7 @@ void send_all_lines(const std::vector<string>& lines)
 	}
 }
 
-void send_packets(const std::vector<string>& lines, progress& progressbar)
+void send_packets(const std::vector<std::string>& lines, progress& progressbar)
 {
 #ifdef _DEBUG
 	log("Sending " + std::to_string(lines.size()) + " packets " + std::to_string(send_count) + " times");
@@ -98,32 +97,32 @@ void send_packets(const std::vector<string>& lines, progress& progressbar)
 DWORD WINAPI start(LPVOID /*lpInstance*/)
 {
 	form fm;
-	fm.caption(L"Waty's PacketSenderPlz v2.4");
+	fm.caption(u8"Waty's PacketSenderPlz v2.4");
 	fm.events().unload(on_unload);
 
 	//Initialize all controls:
 	place plc(fm);
 	progress progressbar(fm);
 	textbox tbPackets(fm), tbSendCount(fm), tbLineDelay(fm), tbLoopDelay(fm);
-	button bSend(fm, L"Send"), bCancel(fm, L"Cancel");
+	button bSend(fm, "Send"), bCancel(fm, "Cancel");
 	pool thrpool(1);
 
-	tbPackets.set_accept([](char_t c) { return iswxdigit(c) || iswcntrl(c) || c == '*' || c == ' '; });
+	tbPackets.set_accept([](wchar_t c) { return iswxdigit(c) || iswcntrl(c) || c == '*' || c == ' '; });
 	API::eat_tabstop(tbPackets, false);
 
-	auto filter = [](char_t c) { return iswdigit(c) || iswcntrl(c); };
-	tbSendCount.tip_string(L"SendCount").multi_lines(false);
-	tbSendCount.tooltip(L"Specifies how many times this packet will be sent.");
+	auto filter = [](wchar_t c) { return iswdigit(c) || iswcntrl(c); };
+	tbSendCount.tip_string("SendCount").multi_lines(false);
+	tbSendCount.tooltip("Specifies how many times this packet will be sent.");
 	tbSendCount.set_accept(filter);
 	API::eat_tabstop(tbSendCount, false);
 
-	tbLineDelay.tip_string(L"LineDelay").multi_lines(false);
-	tbLineDelay.tooltip(L"Specifies the delay in milliseconds that the sender will wait before sending the next line");
+	tbLineDelay.tip_string("LineDelay").multi_lines(false);
+	tbLineDelay.tooltip("Specifies the delay in milliseconds that the sender will wait before sending the next line");
 	tbLineDelay.set_accept(filter);
 	API::eat_tabstop(tbLineDelay, false);
 
-	tbLoopDelay.tip_string(L"LoopDelay").multi_lines(false);
-	tbLoopDelay.tooltip(L"The delay in milliseconds that the sender will wait before restarting the loop");
+	tbLoopDelay.tip_string("LoopDelay").multi_lines(false);
+	tbLoopDelay.tooltip("The delay in milliseconds that the sender will wait before restarting the loop");
 	tbLoopDelay.set_accept(filter);
 	API::eat_tabstop(tbLoopDelay, false);
 
@@ -134,16 +133,18 @@ DWORD WINAPI start(LPVOID /*lpInstance*/)
 		plc.collocate();
 	};
 
-	bSend.events().click([&] {
-		thrpool.push([&]{
+	bSend.events().click([&]
+	{
+		thrpool.push([&]
+		{
 			show_progress(true);
 
 			send_count = tbSendCount.to_int();
 			line_delay = tbLineDelay.to_int();
 			loop_delay = tbLoopDelay.to_int();
 
-			std::vector<string> lines;
-			string str;
+			std::vector<std::string> lines;
+			std::string str;
 			for (size_t i = 0; tbPackets.getline(i, str); i++) lines.push_back(str);
 			send_packets(lines, progressbar);
 

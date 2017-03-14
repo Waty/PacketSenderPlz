@@ -42,7 +42,7 @@ local.properties
 *.sln.docstates
 
 # Build results
-Nana/
+.vs/
 [Dd]ebug/
 [Rr]elease/
 x64/
