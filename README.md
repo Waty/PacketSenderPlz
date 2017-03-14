@@ -15,5 +15,6 @@ PacketSenderPlz uses nana as UI toolkit, so you will need to configure that befo
 
 Thankfully, nana is included in the [vcpkg](https://github.com/Microsoft/vcpkg/) project from Microsoft, making installation easier then ever:
 * Install [vcpkg](https://github.com/Microsoft/vcpkg/) by following the instructions in their README.md
-* Let vcpkg install and compile nana for you by executing `.\vcpkg install nana:x86-windows-static`
-That's it :-) PacketSenderPlz should now compile correctly
+* Let vcpkg download, configure and compile nana for you by executing `.\vcpkg install nana:x86-windows-static`
+
+That's it :smiley: PacketSenderPlz should now compile correctly
