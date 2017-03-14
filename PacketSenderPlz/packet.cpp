@@ -33,7 +33,7 @@ void packet::encode8(uint64_t data)
 
 void packet::encode_string(std::string data)
 {
-	encode2(data.size());
+	encode2(static_cast<uint16_t>(data.size()));
 	data_.insert(data_.end(), data.begin(), data.end());
 }
 
