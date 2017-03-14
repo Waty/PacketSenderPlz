@@ -10,9 +10,9 @@
 #include <sstream>
 #include <thread>
 
-#include <nana\gui.hpp>
-#include <nana\gui\place.hpp>
-#include <nana\gui\widgets\button.hpp>
-#include <nana\gui\widgets\textbox.hpp>
-#include <nana\gui\widgets\progress.hpp>
-#include <nana\threads\pool.hpp>
+#include <nana/gui.hpp>
+#include <nana/gui/place.hpp>
+#include <nana/gui/widgets/button.hpp>
+#include <nana/gui/widgets/textbox.hpp>
+#include <nana/gui/widgets/progress.hpp>
+#include <nana/threads/pool.hpp>
