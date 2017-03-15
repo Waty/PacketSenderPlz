@@ -1,41 +1,12 @@
 #pragma once
-#define EMS
 
-extern void Log(const std::string& msg);
-namespace GMSAddys
-{
-	const unsigned int MSLockAddy = 0x409440;			// 53 56 8B 74 24 0C 8B D9 8B CE
-	const unsigned int MSUnlockAddy = 0x4015A0;			// 8B 01 83 40 04 FF 75 06
-	const unsigned int innoHashAddy = 0x14866B0;		// 51 8B 44 24 10 C7 04 24
-	const unsigned int FlushSocketAddy = 0x5C4D20;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
-	const unsigned int MakeBufferListAddy = 0xA76030;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
-
-	const unsigned int CClientSocketPtr = 0x1A733F8;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
-
-	const unsigned int GameVersion = 149;
-}
-
-namespace EMSAddys
-{
-	const unsigned int MSLockAddy = 0x408A90;			// 53 56 8B 74 24 0C 8B D9 8B CE
-	const unsigned int MSUnlockAddy = 0x4013D0;			// 8B 01 83 40 04 FF 75 06
-	const unsigned int innoHashAddy = 0x11A9A40;		// 51 8B 44 24 10 C7 04 24
-	const unsigned int FlushSocketAddy = 0x586DA0;		// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 10 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 24 64 A3 ? ? ? ? 8B E9 8B 45 08
-	const unsigned int MakeBufferListAddy = 0x936DC0;	// 6A FF 68 ? ? ? ? 64 A1 ? ? ? ? 50 83 EC 14 53 55 56 57 A1 ? ? ? ? 33 C4 50 8D 44 24 28 64 A3 ? ? ? ? 8B E9 89 6C 24 1C
-
-	const unsigned int CClientSocketPtr = 0x168BF80;	// 8B 0D ? ? ? ? 8D 54 24 1C 52 E8 ? ? ? ? 8B 0D
-
-	const unsigned int GameVersion = 106;
-}
-
-#ifdef GMS
-using namespace GMSAddys;
-#endif // GMS
-
-#ifdef EMS
-using namespace EMSAddys;
-#endif // EMS
-
+const uint32_t GameVersion = 183;
+const uint32_t MSLockAddy = 0x5E5210; // 55 8B EC 56 8B 75 08 57 8B F9
+const uint32_t MSUnlockAddy = 0x60B790; // 8B 01 83 40 04 FF 75 06
+const uint32_t innoHashAddy = 0xBEAAE0; // 55 8B EC 51 8B 4D 10 8D 45
+const uint32_t FlushSocketAddy = 0xDC7150; // 55 8B EC 6A FF 68 48 8C 2F 02 64 A1 00 00 00 00 50 83 EC 18 A1 E8 58 AC 02 33 C5 50
+const uint32_t MakeBufferListAddy = 0x9BB2E0; // 55 8B EC 6A FF 68 A8 B3 29 02 64 A1 00 00 00 00 50 83 EC 1C 53 56 57 A1 E8 58 AC 02 33 C5 50 8D 45 F4 64 A3 00 00 00 00 89 4D E8 8B 41 08 3D 00 FF 00 00 8D 50
+const uint32_t CClientSocketPtr = 0x2AF17B4; // 8B 0D ? ? ? ? 85 ? 74 ? 8D ? ? ? ? ? ? 19 00
 
 
 struct ZSocketBase
@@ -43,17 +14,20 @@ struct ZSocketBase
 	unsigned int _m_hSocket;
 };
 
-template <class T> struct ZList
+template <class T>
+struct ZList
 {
-	virtual ~ZList<T>();		//0x00
-	void* baseclass_4;			//0x04
-	unsigned int _m_uCount;		//0x08
-	T* _m_pHead;				//0x0C
-	T* _m_pTail;				//0x10	
-};								//0x14 
-static_assert(sizeof(ZList<void>) == 0x14, "ZList is the wrong size");
+	virtual ~ZList<T>() = delete;
+	void* baseclass_4;
+	unsigned int _m_uCount;
+	T* _m_pHead;
+	T* _m_pTail;
+};
 
-template <class T> struct ZRef
+static_assert(sizeof(ZList<uint32_t>) == 0x14, "ZList is the wrong size");
+
+template <class T>
+struct ZRef
 {
 	void* vfptr;
 	T* data;
@@ -62,22 +36,25 @@ template <class T> struct ZRef
 #pragma pack( push, 1 )
 struct COutPacket
 {
-	COutPacket() : m_bLoopback(false), m_bIsEncryptedByShanda(false), m_uOffset(0) { }
+	COutPacket() : m_bLoopback(false), m_lpvSendBuff(nullptr), m_uDataLen(0), m_uOffset(0), m_bIsEncryptedByShanda(false)
+	{
+	}
+
 	COutPacket(unsigned char* data, unsigned int dwLength) : COutPacket()
 	{
 		m_lpvSendBuff = data;
 		m_uDataLen = dwLength;
 	}
 
-	bool m_bLoopback;							// + 0x00
-	unsigned char* m_lpvSendBuff;							// + 0x04
-	unsigned int m_uDataLen;							// + 0x08
-	unsigned int m_uOffset;								// + 0x0C
-	bool  m_bIsEncryptedByShanda;				// + 0x10
+	bool m_bLoopback; // + 0x00
+	unsigned char* m_lpvSendBuff; // + 0x04
+	unsigned int m_uDataLen; // + 0x08
+	unsigned int m_uOffset; // + 0x0C
+	bool m_bIsEncryptedByShanda; // + 0x10
 
-	void MakeBufferList(ZList<ZRef<void>> *l, unsigned __int16 uSeqBase, unsigned int *puSeqKey, int bEnc, unsigned int dwKey)
+	void MakeBufferList(ZList<ZRef<void>>* l, unsigned __int16 uSeqBase, unsigned int* puSeqKey, int bEnc, unsigned int dwKey)
 	{
-		typedef void(__thiscall *MakeBufferList_t)(COutPacket *_this, ZList<ZRef<void>> *l, unsigned __int16 uSeqBase, unsigned int *puSeqKey, int bEnc, unsigned int dwKey);
+		typedef void(__thiscall *MakeBufferList_t)(COutPacket* _this, ZList<ZRef<void>>* l, unsigned __int16 uSeqBase, unsigned int* puSeqKey, int bEnc, unsigned int dwKey);
 		MakeBufferList_t MakeBufferList = reinterpret_cast<MakeBufferList_t>(MakeBufferListAddy);
 		MakeBufferList(this, l, uSeqBase, puSeqKey, bEnc, dwKey);
 	}
@@ -85,32 +62,31 @@ struct COutPacket
 
 struct CInPacket
 {
-	bool m_bLoopback;							// + 0x00
-	int m_nState;								// + 0x04
-	unsigned char* m_lpbRecvBuff;							// + 0x08
-	unsigned int m_uLength;								// + 0x0C
-	unsigned int m_uRawSeq;								// + 0x10
-	unsigned int m_uDataLen;							// + 0x14
-	unsigned int m_uOffset;								// + 0x18
+	bool m_bLoopback; // + 0x00
+	int m_nState; // + 0x04
+	unsigned char* m_lpbRecvBuff; // + 0x08
+	unsigned int m_uLength; // + 0x0C
+	unsigned int m_uRawSeq; // + 0x10
+	unsigned int m_uDataLen; // + 0x14
+	unsigned int m_uOffset; // + 0x18
 };
 
 #pragma pack( pop )
 
 struct ZFatalSectionData
 {
-	void *_m_pTIB;									// + 0x00
-	int _m_nRef;									// + 0x04
+	void* _m_pTIB; // + 0x00
+	int _m_nRef; // + 0x04
 };
 
-struct ZFatalSection : public ZFatalSectionData
+struct ZFatalSection : ZFatalSectionData
 {
-
 };
 
-template<class T> struct ZSynchronizedHelper
+template <class T>
+struct ZSynchronizedHelper
 {
-public:
-	__inline ZSynchronizedHelper(T* lock)
+	explicit __inline ZSynchronizedHelper(T* lock)
 	{
 		reinterpret_cast<void(__thiscall*)(ZSynchronizedHelper<T>*, T*)>(MSLockAddy)(this, lock);
 	}
@@ -124,33 +100,32 @@ private:
 	T* m_pLock;
 };
 
-static auto CIGCipher__innoHash = reinterpret_cast<unsigned int(__cdecl *)(char *pSrc, int nLen, unsigned int *pdwKey)>(innoHashAddy);
+static auto CIGCipher__innoHash = reinterpret_cast<unsigned int(__cdecl *)(char* pSrc, int nLen, unsigned int* pdwKey)>(innoHashAddy);
 struct CClientSocket
 {
 	struct CONNECTCONTEXT
 	{
 		ZList<sockaddr_in> lAddr;
-		void *posList;
+		void* posList;
 		int bLogin;
+
+		~CONNECTCONTEXT() = delete;
 	};
 
-	virtual ~CClientSocket();
-	void* ___u1;
+	virtual ~CClientSocket() = delete;
+	void* _unknown1;
+	HWND* m_hWnd;
 	ZSocketBase m_sock;
 	CONNECTCONTEXT m_ctxConnect;
 	sockaddr_in m_addr;
 	int m_tTimeout;
-#ifdef EMS
-	void* unknown;					//ZList<ZInetAddr>::'vftable'
-#endif
-	ZList<ZRef<void> > m_lpRecvBuff; //ZList<ZRef<ZSocketBuffer> >
-	ZList<ZRef<void> > m_lpSendBuff; //ZList<ZRef<ZSocketBuffer> >
+	void* _unknown2;
+	ZList<ZRef<void>> m_lpRecvBuff; //ZList<ZRef<ZSocketBuffer> >
+	ZList<ZRef<void>> m_lpSendBuff; //ZList<ZRef<ZSocketBuffer> >
 	CInPacket m_packetRecv;
 	ZFatalSection m_lockSend;
 	unsigned int m_uSeqSnd;
 	unsigned int m_uSeqRcv;
-	char* m_URLGuestIDRegistration;
-	int m_bIsGuestID;
 
 	void Flush()
 	{
@@ -164,15 +139,10 @@ struct CClientSocket
 		if (m_sock._m_hSocket != 0 && m_sock._m_hSocket != 0xFFFFFFFF && m_ctxConnect.lAddr._m_uCount == 0)
 		{
 			oPacket.MakeBufferList(&m_lpSendBuff, GameVersion, &m_uSeqSnd, 1, m_uSeqSnd);
-			m_uSeqSnd = CIGCipher__innoHash(reinterpret_cast<char*>(&m_uSeqSnd), 4, 0);
+			m_uSeqSnd = CIGCipher__innoHash(reinterpret_cast<char*>(&m_uSeqSnd), 4, nullptr);
 			Flush();
 		}
 	}
 };
-#ifdef GMS
-static_assert(sizeof(CClientSocket) == 0x98, "CClientSocket is the wrong size!");
-#endif // GMS
 
-#ifdef EMS
-static_assert(sizeof(CClientSocket) == 0x9C, "CClientSocket is the wrong size!");
-#endif // EMS
+static_assert(sizeof(CClientSocket) == 0x98, "CClientSocket is the wrong size!");
